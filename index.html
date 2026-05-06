@@ -19,7 +19,10 @@
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         .update-time { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 25px; }
-        .stats-subgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        
+        /* CẬP NHẬT: Thay đổi thành 3 cột để 6 card hiển thị cân đối (2 hàng x 3 cột) */
+        .stats-subgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        
         .card { 
             background: var(--card-bg); padding: 15px; border-radius: 12px; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
@@ -103,18 +106,17 @@
 <!-- NÚT ĐĂNG XUẤT -->
 <button id="logout-btn" style="display: none;" onclick="handleLogout()">Đăng xuất</button>
 
-<!-- GIAO DIỆN GIÁM SÁT (BỌC LẠI BẰNG DIV ĐỂ ẨN/HIỆN) -->
+<!-- GIAO DIỆN GIÁM SÁT -->
 <div id="dashboard-content" style="display: none;">
     <div class="container">
         <h1>Hệ Thống Giám Sát Năng Lượng Solar</h1>
         <div id="last-update" class="update-time">Đang tải dữ liệu...</div>
         
         <div class="main-grid">
+            <!-- CẬP NHẬT: Đã xóa T2 và H2, còn lại 6 card -->
             <div class="stats-subgrid">
-                <div class="card" style="border-color: #e74c3c;"><h3>T1 (°C)</h3><div id="v-t1" class="value">--</div></div>
-                <div class="card" style="border-color: #3498db;"><h3>H1 (%)</h3><div id="v-h1" class="value">--</div></div>
-                <div class="card" style="border-color: #e67e22;"><h3>T2 (°C)</h3><div id="v-t2" class="value">--</div></div>
-                <div class="card" style="border-color: #2980b9;"><h3>H2 (%)</h3><div id="v-h2" class="value">--</div></div>
+                <div class="card" style="border-color: #e74c3c;"><h3>Nhiệt độ (°C)</h3><div id="v-t1" class="value">--</div></div>
+                <div class="card" style="border-color: #3498db;"><h3>Độ ẩm (%)</h3><div id="v-h1" class="value">--</div></div>
                 <div class="card" style="border-color: #f1c40f;"><h3>Ánh sáng</h3><div id="v-light" class="value">--</div></div>
                 <div class="card" style="border-color: #27ae60;"><h3>Dòng (mA)</h3><div id="v-curr" class="value">--</div></div>
                 <div class="card" style="border-color: #e31a1c;"><h3>Công suất</h3><div id="v-pow" class="value">--</div></div>
@@ -146,11 +148,7 @@
 </div>
 
 <script>
-    // ==========================================
-    // LOGIC ĐĂNG NHẬP & EMAIL (TÁCH BIỆT)
-    // ==========================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwy_3oEN8vXmzmnyeV0T-nLdtPzYqeOOZH6hHB4ONUnXJxRXFNjgo-WX1T-bdgrSCPH8Q/exec";
-    let currentOTP = null;
 
     function toggleAuth(type) {
         document.getElementById('form-login').style.display = type === 'login' ? 'block' : 'none';
@@ -158,118 +156,68 @@
         document.getElementById('form-forgot').style.display = type === 'forgot' ? 'block' : 'none';
     }
 
-    async function callEmailScript(email, subject, body) {
+    async function sendOTP() {
+        const email = document.getElementById('r-email').value;
+        if (!email.includes('@')) return alert("Vui lòng nhập đúng Gmail!");
+        const url = `${GAS_URL}?action=sendOTP&gmail=${encodeURIComponent(email)}`;
         try {
-            await fetch(`${GAS_URL}?email=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, { mode: 'no-cors' });
-            return true;
-        } catch (e) { return false; }
+            const res = await fetch(url);
+            const txt = await res.text();
+            alert(txt === "SENT" ? "Mã OTP đã gửi vào Gmail!" : "Lỗi: " + txt);
+        } catch (e) { alert("Lỗi kết nối server!"); }
     }
 
- async function sendOTP() {
-    const email = document.getElementById('r-email').value;
-    if (!email.includes('@')) return alert("Vui lòng nhập đúng Gmail!");
-
-    const url = `${GAS_URL}?action=sendOTP&gmail=${encodeURIComponent(email)}`;
-    
-    try {
-        const res = await fetch(url);
-        const txt = await res.text();
-        if (txt === "SENT") {
-            alert("Mã OTP đã gửi vào Gmail!");
-        } else {
-            alert("Lỗi: " + txt);
-        }
-    } catch (e) { alert("Lỗi kết nối server!"); }
-}
-
-async function handleRegister() {
-    const user = document.getElementById('r-user').value;
-    const email = document.getElementById('r-email').value;
-    const pass = document.getElementById('r-pass').value;
-    const otp = document.getElementById('r-otp').value;
-
-    if (!user || !email || !pass || !otp) return alert("Vui lòng điền đủ thông tin!");
-
-    const url = `${GAS_URL}?action=register&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&gmail=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
-
-    try {
-        const res = await fetch(url);
-        const txt = await res.text();
-        if (txt === "SUCCESS") {
-            alert("Đăng ký thành công!");
-            toggleAuth('login');
-        } else {
-            alert(txt);
-        }
-    } catch (e) { alert("Lỗi kết nối!"); }
-}
-
- async function handleLogin() {
-    const user = document.getElementById('l-user').value;
-    const pass = document.getElementById('l-pass').value;
-
-    if (!user || !pass) {
-        return alert("Vui lòng nhập tài khoản và mật khẩu!");
+    async function handleRegister() {
+        const user = document.getElementById('r-user').value;
+        const email = document.getElementById('r-email').value;
+        const pass = document.getElementById('r-pass').value;
+        const otp = document.getElementById('r-otp').value;
+        if (!user || !email || !pass || !otp) return alert("Vui lòng điền đủ thông tin!");
+        const url = `${GAS_URL}?action=register&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&gmail=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
+        try {
+            const res = await fetch(url);
+            const txt = await res.text();
+            if (txt === "SUCCESS") { alert("Đăng ký thành công!"); toggleAuth('login'); } else { alert(txt); }
+        } catch (e) { alert("Lỗi kết nối!"); }
     }
 
-    const url = `${GAS_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
-
-    try {
-        const res = await fetch(url);
-        const txt = await res.text();
-
-        if (txt === "SUCCESS") {
-            sessionStorage.setItem('isLoggedIn', 'true');
-            // Đăng nhập đúng: Vào thẳng dashboard không cần thông báo alert
-            startDashboard(); 
-        } else {
-            // Chỉ hiện thông báo khi có lỗi (Sai mật khẩu/Tài khoản không tồn tại)
-            alert(txt); 
-        }
-    } catch (e) {
-        console.error("Lỗi kết nối:", e);
-        alert("Lỗi kết nối server!");
+    async function handleLogin() {
+        const user = document.getElementById('l-user').value;
+        const pass = document.getElementById('l-pass').value;
+        if (!user || !pass) return alert("Vui lòng nhập tài khoản và mật khẩu!");
+        const url = `${GAS_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+        try {
+            const res = await fetch(url);
+            const txt = await res.text();
+            if (txt === "SUCCESS") { sessionStorage.setItem('isLoggedIn', 'true'); startDashboard(); } else { alert(txt); }
+        } catch (e) { alert("Lỗi kết nối server!"); }
     }
-}
 
-  async function handleForgot() {
-    const email = document.getElementById('f-email').value;
-    if (!email) return alert("Vui lòng nhập Gmail!");
-
-    const url = `${GAS_URL}?action=forgot&gmail=${encodeURIComponent(email)}`;
-
-    try {
-        const res = await fetch(url);
-        const txt = await res.text();
-        if (txt === "SUCCESS") {
-            alert("Mật khẩu mới đã được gửi vào Gmail!");
-            toggleAuth('login');
-        } else {
-            alert(txt);
-        }
-    } catch (e) { alert("Lỗi kết nối!"); }
-}
-
-    function handleLogout() {
-        sessionStorage.removeItem('isLoggedIn');
-        location.reload();
+    async function handleForgot() {
+        const email = document.getElementById('f-email').value;
+        if (!email) return alert("Vui lòng nhập Gmail!");
+        const url = `${GAS_URL}?action=forgot&gmail=${encodeURIComponent(email)}`;
+        try {
+            const res = await fetch(url);
+            const txt = await res.text();
+            if (txt === "SUCCESS") { alert("Mật khẩu mới đã được gửi vào Gmail!"); toggleAuth('login'); } else { alert(txt); }
+        } catch (e) { alert("Lỗi kết nối!"); }
     }
+
+    function handleLogout() { sessionStorage.removeItem('isLoggedIn'); location.reload(); }
 
     function startDashboard() {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
         document.getElementById('logout-btn').style.display = 'block';
-        updateData(); // Bắt đầu load dữ liệu solar
+        updateData();
         setInterval(updateData, 10000);
     }
 
-    // Kiểm tra trạng thái khi tải trang
-    window.onload = () => {
-        if(sessionStorage.getItem('isLoggedIn') === 'true') startDashboard();
-    }
+    window.onload = () => { if(sessionStorage.getItem('isLoggedIn') === 'true') startDashboard(); }
 
     // ==========================================
-    // GIỮ NGUYÊN TOÀN BỘ LOGIC DASHBOARD CỦA BẠN
+    // LOGIC DASHBOARD (ĐÃ LOẠI BỎ T2, H2)
     // ==========================================
     const SHEET_ID = '1ZoynWyfSZf1czGpHHPpRHT0Cbpd3ht1R-hUQ0n4lgQU';
     const GID_SHEET2 = '1161955102'; 
@@ -289,8 +237,7 @@ async function handleRegister() {
                 const last = validData[validData.length - 1];
                 document.getElementById('v-t1').innerText = last[1];
                 document.getElementById('v-h1').innerText = last[2];
-                document.getElementById('v-t2').innerText = last[3];
-                document.getElementById('v-h2').innerText = last[4];
+                // Bỏ qua last[3] (T2) và last[4] (H2)
                 document.getElementById('v-light').innerText = last[5];
                 document.getElementById('v-curr').innerText = last[6];
                 document.getElementById('v-pow').innerText = last[7] || "0";
@@ -305,10 +252,11 @@ async function handleRegister() {
                 const recent = validData.slice(-100);
                 const labels = recent.map(r => r[0]);
                 const d = {
-                    t1: recent.map(r => parseFloat(r[1])), h1: recent.map(r => parseFloat(r[2])),
-                    t2: recent.map(r => parseFloat(r[3])), h2: recent.map(r => parseFloat(r[4])),
+                    t1: recent.map(r => parseFloat(r[1])), 
+                    h1: recent.map(r => parseFloat(r[2])),
                     light: recent.map(r => parseFloat(r[5])),
-                    curr: recent.map(r => parseFloat(r[6])), pow: recent.map(r => parseFloat(r[7]) || 0)
+                    curr: recent.map(r => parseFloat(r[6])), 
+                    pow: recent.map(r => parseFloat(r[7]) || 0)
                 };
                 renderAllCharts(labels, d);
             }
@@ -354,11 +302,10 @@ async function handleRegister() {
             }
         };
 
+        // CẬP NHẬT: Biểu đồ chỉ vẽ T1 và H1
         config('chartEnv', [
             { label: 'T1', data: d.t1, borderColor: '#e74c3c' },
-            { label: 'H1', data: d.h1, borderColor: '#3498db' },
-            { label: 'T2', data: d.t2, borderColor: '#e67e22', borderDash: [5,5] },
-            { label: 'H2', data: d.h2, borderColor: '#2980b9', borderDash: [5,5] }
+            { label: 'H1', data: d.h1, borderColor: '#3498db' }
         ]);
         config('chartPower', [
             { label: 'Dòng', data: d.curr, borderColor: '#27ae60' },
@@ -369,6 +316,5 @@ async function handleRegister() {
         ]);
     }
 </script>
-
 </body>
 </html>
