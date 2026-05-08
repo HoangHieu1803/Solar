@@ -205,7 +205,24 @@
     }
 
     function handleLogout() { sessionStorage.removeItem('isLoggedIn'); location.reload(); }
+// Lắng nghe sự kiện phím nhấn cho toàn bộ trang web
+document.addEventListener('keydown', function(event) {
+    // Kiểm tra nếu phím nhấn là Enter
+    if (event.key === 'Enter') {
+        // Kiểm tra xem người dùng đang ở form nào để kích hoạt hàm tương ứng
+        const loginForm = document.getElementById('form-login');
+        const registerForm = document.getElementById('form-register');
+        const forgotForm = document.getElementById('form-forgot');
 
+        if (loginForm.style.display !== 'none') {
+            handleLogin();
+        } else if (registerForm.style.display !== 'none') {
+            handleRegister();
+        } else if (forgotForm.style.display !== 'none') {
+            handleForgot();
+        }
+    }
+});
     function startDashboard() {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
