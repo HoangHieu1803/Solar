@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar Advanced Dashboard + Camera</title>
+    <title>Solar Dashboard </title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -20,7 +20,6 @@
         .update-time { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 25px; }
         
-        /* CẬP NHẬT: Thay đổi thành 3 cột để 6 card hiển thị cân đối (2 hàng x 3 cột) */
         .stats-subgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         
         .card { 
@@ -47,7 +46,8 @@
         /* --- CSS CHO PHẦN ĐĂNG NHẬP --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #fbfbfc, #34495e);
+            background: url('https://lh3.googleusercontent.com/d/1z8IovJfr1cwoqU4WZjI0mxvH2_kr4lrI') no-repeat center center fixed;
+            background-size: cover;
             display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
         .auth-container { background: white; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -113,7 +113,6 @@
         <div id="last-update" class="update-time">Đang tải dữ liệu...</div>
         
         <div class="main-grid">
-            <!-- CẬP NHẬT: Đã xóa T2 và H2, còn lại 6 card -->
             <div class="stats-subgrid">
                 <div class="card" style="border-color: #e74c3c;"><h3>Nhiệt độ (°C)</h3><div id="v-t1" class="value">--</div></div>
                 <div class="card" style="border-color: #3498db;"><h3>Độ ẩm (%)</h3><div id="v-h1" class="value">--</div></div>
@@ -217,7 +216,7 @@
     window.onload = () => { if(sessionStorage.getItem('isLoggedIn') === 'true') startDashboard(); }
 
     // ==========================================
-    // LOGIC DASHBOARD (ĐÃ LOẠI BỎ T2, H2)
+    // LOGIC DASHBOARD 
     // ==========================================
     const SHEET_ID = '1ZoynWyfSZf1czGpHHPpRHT0Cbpd3ht1R-hUQ0n4lgQU';
     const GID_SHEET2 = '1161955102'; 
@@ -226,42 +225,61 @@
 
     let charts = {};
 
-    async function updateData() {
+   async function updateData() {
         try {
             const res1 = await fetch(URL_S1 + '&cb=' + Date.now());
             const text1 = await res1.text();
             const rows1 = text1.split('\n').map(r => r.split(','));
-            const validData = rows1.filter(r => !isNaN(parseFloat(r[1])) && r[0] !== "Thời gian");
+            
+            // Lọc các dòng hợp lệ (loại bỏ header và dòng trống)
+            const validData = rows1.filter(r => r.length > 1 && !isNaN(parseFloat(r[1])) && r[0] !== "Thời gian");
             
             if (validData.length > 0) {
+                // 1. Lấy dòng cuối cùng để hiển thị giá trị tức thời
                 const last = validData[validData.length - 1];
                 document.getElementById('v-t1').innerText = last[1];
                 document.getElementById('v-h1').innerText = last[2];
-                // Bỏ qua last[3] (T2) và last[4] (H2)
                 document.getElementById('v-light').innerText = last[5];
                 document.getElementById('v-curr').innerText = last[6];
                 document.getElementById('v-pow').innerText = last[7] || "0";
                 document.getElementById('v-servo').innerText = (last[8] || "0") + "°";
                 
-                const dateOnly = last[0].split(' ')[0];
-                document.getElementById('d1').innerText = dateOnly;
-                document.getElementById('d2').innerText = dateOnly;
-                document.getElementById('d3').innerText = dateOnly;
-                document.getElementById('last-update').innerText = "Cập nhật dữ liệu lúc: " + last[0];
+                // 2. Xử lý lấy ngày cuối cùng
+                // Giả sử định dạng ngày là "DD/MM/YYYY HH:mm:ss" hoặc "YYYY-MM-DD HH:mm:ss"
+                const lastFullTimestamp = last[0].trim();
+                const latestDate = lastFullTimestamp.split(' ')[0]; // Lấy phần ngày (bỏ phần giờ)
 
-                const recent = validData.slice(-100);
-                const labels = recent.map(r => r[0]);
+                // 3. Lọc tất cả dữ liệu thuộc về ngày này
+                const dataOfLatestDay = validData.filter(r => r[0].trim().startsWith(latestDate));
+
+                // Cập nhật hiển thị ngày trên tiêu đề biểu đồ
+                document.getElementById('d1').innerText = latestDate;
+                document.getElementById('d2').innerText = latestDate;
+                document.getElementById('d3').innerText = latestDate;
+                document.getElementById('last-update').innerText = "Cập nhật dữ liệu lúc: " + lastFullTimestamp;
+
+                // 4. Chuẩn bị dữ liệu cho biểu đồ từ dataOfLatestDay (thay vì .slice(-100))
+                const labels = dataOfLatestDay.map(r => {
+                    // Chỉ lấy phần Giờ:Phút để biểu đồ trông gọn hơn
+                    const timePart = r[0].trim().split(' ')[1]; 
+                    return timePart ? timePart.substring(0, 5) : r[0];
+                });
+
                 const d = {
-                    t1: recent.map(r => parseFloat(r[1])), 
-                    h1: recent.map(r => parseFloat(r[2])),
-                    light: recent.map(r => parseFloat(r[5])),
-                    curr: recent.map(r => parseFloat(r[6])), 
-                    pow: recent.map(r => parseFloat(r[7]) || 0)
+                    t1: dataOfLatestDay.map(r => parseFloat(r[1])), 
+                    h1: dataOfLatestDay.map(r => parseFloat(r[2])),
+                    light: dataOfLatestDay.map(r => parseFloat(r[5])),
+                    curr: dataOfLatestDay.map(r => parseFloat(r[6])), 
+                    pow: dataOfLatestDay.map(r => parseFloat(r[7]) || 0)
                 };
+                
                 renderAllCharts(labels, d);
             }
-        } catch (e) { console.error("Lỗi Sheet 1"); }
+        } catch (e) { 
+            console.error("Lỗi Sheet 1:", e); 
+        }
 
+        // --- Giữ nguyên phần xử lý Sheet 2 (Hình ảnh) ---
         try {
             const res2 = await fetch(URL_S2 + '&cb=' + Date.now());
             const text2 = await res2.text();
@@ -302,7 +320,6 @@
             }
         };
 
-        // CẬP NHẬT: Biểu đồ chỉ vẽ T1 và H1
         config('chartEnv', [
             { label: 'T1', data: d.t1, borderColor: '#e74c3c' },
             { label: 'H1', data: d.h1, borderColor: '#3498db' }
