@@ -14,7 +14,7 @@
             --primary: #2c3e50;
             --accent: #3498db;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; overflow-x: hidden; }
         .container { max-width: 1400px; margin: auto; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         .update-time { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
@@ -23,10 +23,37 @@
         .stats-subgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         
         .card { 
-            background: var(--card-bg); padding: 15px; border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
-            border-top: 4px solid var(--accent);
-        }
+    background: var(--card-bg); 
+    padding: 15px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+    text-align: center;
+    border-top: 4px solid var(--accent);
+    
+    /* Thêm 2 dòng dưới đây để tạo hiệu ứng mượt mà */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    cursor: pointer;
+}
+
+/* Hiệu ứng khi di chuột vào (hover) */
+.card:hover {
+    transform: translateY(-5px) scale(1.05); /* Nhích lên trên 5px và phóng to 5% */
+    box-shadow: 0 12px 20px rgba(0,0,0,0.15); /* Làm bóng đổ đậm hơn để tạo cảm giác nổi lên */
+    z-index: 10; /* Đảm bảo card đang hover nằm trên các card khác */
+}
+
+/* Áp dụng tương tự cho cả Image Card nếu bạn muốn */
+.image-card {
+    background: var(--card-bg); padding: 10px; border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
+    display: flex; flex-direction: column; justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.image-card:hover {
+    transform: scale(1.02); 
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
         .card h3 { margin: 0; color: #7f8c8d; font-size: 11px; text-transform: uppercase; }
         .card .value { font-size: 22px; font-weight: bold; margin-top: 8px; color: #2c3e50; }
         .image-card {
@@ -43,14 +70,61 @@
         .chart-box h2 { font-size: 14px; margin: 0; color: var(--primary); }
         @media (max-width: 1000px) { .main-grid, .grid-charts { grid-template-columns: 1fr; } .stats-subgrid { grid-template-columns: repeat(2, 1fr); } }
 
-        /* --- CSS CHO PHẦN ĐĂNG NHẬP --- */
+        /* --- CSS CHO PHẦN ĐĂNG NHẬP CẢI TIẾN --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://lh3.googleusercontent.com/d/1z8IovJfr1cwoqU4WZjI0mxvH2_kr4lrI') no-repeat center center fixed;
+            background: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=1920') no-repeat center center fixed;
             background-size: cover;
             display: flex; justify-content: center; align-items: center; z-index: 9999;
+            overflow: hidden;
         }
-        .auth-container { background: white; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        /* Hiệu ứng mặt trời động */
+        .sun {
+            position: absolute;
+            top: 10%;
+            right: 15%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #fff700 30%, #ff9d00 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px #ff9d00, 0 0 100px #ffea00;
+            animation: sun-glow 4s infinite alternate ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes sun-glow {
+            from { transform: scale(1); box-shadow: 0 0 50px #ff9d00; }
+            to { transform: scale(1.1); box-shadow: 0 0 90px #ffea00; }
+        }
+
+        /* Hiệu ứng mây trôi */
+        .cloud {
+            position: absolute;
+            background: url('https://cdn-icons-png.flaticon.com/512/414/414927.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.8;
+            z-index: 2;
+        }
+        .cloud-1 { width: 200px; height: 100px; top: 15%; left: -200px; animation: move-cloud 25s linear infinite; }
+        .cloud-2 { width: 150px; height: 80px; top: 5%; left: -150px; animation: move-cloud 35s linear infinite 5s; }
+        .cloud-3 { width: 250px; height: 120px; top: 25%; left: -250px; animation: move-cloud 45s linear infinite 15s; }
+
+        @keyframes move-cloud {
+            from { left: -10%; }
+            to { left: 110%; }
+        }
+
+        .auth-container { 
+            background: rgba(255, 255, 255, 0.9); /* Độ trong suốt để thấy nền */
+            backdrop-filter: blur(5px);
+            padding: 30px; border-radius: 15px; width: 350px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+            z-index: 10; /* Luôn nằm trên mây và mặt trời */
+            position: relative;
+        }
+
         .auth-container h2 { text-align: center; color: #2c3e50; margin-top: 0; }
         .auth-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         .auth-btn { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
@@ -59,16 +133,22 @@
         .otp-box { display: flex; gap: 8px; }
         #btn-otp { background: #27ae60; color: white; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; font-size: 12px; white-space: nowrap; }
         #logout-btn { position: fixed; top: 10px; right: 10px; padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; z-index: 100; }
-    </style>
+    </style> 
 </head>
 <body>
 
 <!-- GIAO DIỆN ĐĂNG NHẬP -->
 <div id="auth-screen">
+    <!-- Thành phần hình ảnh động -->
+    <div class="sun"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+
     <div class="auth-container">
         <!-- Form Đăng Nhập -->
         <div id="form-login">
-            <h1>Solar Dashboard</h1>
+            <h1 style="font-size: 24px;">Solar Dashboard</h1>
             <h2>Đăng Nhập</h2>
             <input type="text" id="l-user" placeholder="Tên tài khoản">
             <input type="password" id="l-pass" placeholder="Mật khẩu">
@@ -109,6 +189,7 @@
 
 <!-- GIAO DIỆN GIÁM SÁT -->
 <div id="dashboard-content" style="display: none;">
+    
     <div class="container">
         <h1>Hệ Thống Giám Sát Năng Lượng Solar</h1>
         <div id="last-update" class="update-time">Đang tải dữ liệu...</div>
@@ -148,6 +229,7 @@
 </div>
 
 <script>
+    // Giữ nguyên toàn bộ phần script logic của bạn bên dưới
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwy_3oEN8vXmzmnyeV0T-nLdtPzYqeOOZH6hHB4ONUnXJxRXFNjgo-WX1T-bdgrSCPH8Q/exec";
 
     function toggleAuth(type) {
@@ -205,24 +287,18 @@
     }
 
     function handleLogout() { sessionStorage.removeItem('isLoggedIn'); location.reload(); }
-// Lắng nghe sự kiện phím nhấn cho toàn bộ trang web
-document.addEventListener('keydown', function(event) {
-    // Kiểm tra nếu phím nhấn là Enter
-    if (event.key === 'Enter') {
-        // Kiểm tra xem người dùng đang ở form nào để kích hoạt hàm tương ứng
-        const loginForm = document.getElementById('form-login');
-        const registerForm = document.getElementById('form-register');
-        const forgotForm = document.getElementById('form-forgot');
 
-        if (loginForm.style.display !== 'none') {
-            handleLogin();
-        } else if (registerForm.style.display !== 'none') {
-            handleRegister();
-        } else if (forgotForm.style.display !== 'none') {
-            handleForgot();
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const loginForm = document.getElementById('form-login');
+            const registerForm = document.getElementById('form-register');
+            const forgotForm = document.getElementById('form-forgot');
+            if (loginForm.style.display !== 'none') handleLogin();
+            else if (registerForm.style.display !== 'none') handleRegister();
+            else if (forgotForm.style.display !== 'none') handleForgot();
         }
-    }
-});
+    });
+
     function startDashboard() {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
@@ -233,27 +309,21 @@ document.addEventListener('keydown', function(event) {
 
     window.onload = () => { if(sessionStorage.getItem('isLoggedIn') === 'true') startDashboard(); }
 
-    // ==========================================
-    // LOGIC DASHBOARD 
-    // ==========================================
+    // Logic xử lý Sheet & Chart (giữ nguyên của bạn)
     const SHEET_ID = '1ZoynWyfSZf1czGpHHPpRHT0Cbpd3ht1R-hUQ0n4lgQU';
     const GID_SHEET2 = '1161955102'; 
     const URL_S1 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
     const URL_S2 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_SHEET2}`;
-
     let charts = {};
 
-   async function updateData() {
+    async function updateData() {
         try {
             const res1 = await fetch(URL_S1 + '&cb=' + Date.now());
             const text1 = await res1.text();
             const rows1 = text1.split('\n').map(r => r.split(','));
-            
-            // Lọc các dòng hợp lệ (loại bỏ header và dòng trống)
             const validData = rows1.filter(r => r.length > 1 && !isNaN(parseFloat(r[1])) && r[0] !== "Thời gian");
             
             if (validData.length > 0) {
-                // 1. Lấy dòng cuối cùng để hiển thị giá trị tức thời
                 const last = validData[validData.length - 1];
                 document.getElementById('v-t1').innerText = last[1];
                 document.getElementById('v-h1').innerText = last[2];
@@ -262,23 +332,16 @@ document.addEventListener('keydown', function(event) {
                 document.getElementById('v-pow').innerText = last[7] || "0";
                 document.getElementById('v-servo').innerText = (last[8] || "0") + "°";
                 
-                // 2. Xử lý lấy ngày cuối cùng
-                // Giả sử định dạng ngày là "DD/MM/YYYY HH:mm:ss" hoặc "YYYY-MM-DD HH:mm:ss"
                 const lastFullTimestamp = last[0].trim();
-                const latestDate = lastFullTimestamp.split(' ')[0]; // Lấy phần ngày (bỏ phần giờ)
-
-                // 3. Lọc tất cả dữ liệu thuộc về ngày này
+                const latestDate = lastFullTimestamp.split(' ')[0];
                 const dataOfLatestDay = validData.filter(r => r[0].trim().startsWith(latestDate));
 
-                // Cập nhật hiển thị ngày trên tiêu đề biểu đồ
                 document.getElementById('d1').innerText = latestDate;
                 document.getElementById('d2').innerText = latestDate;
                 document.getElementById('d3').innerText = latestDate;
                 document.getElementById('last-update').innerText = "Cập nhật dữ liệu lúc: " + lastFullTimestamp;
 
-                // 4. Chuẩn bị dữ liệu cho biểu đồ từ dataOfLatestDay (thay vì .slice(-100))
                 const labels = dataOfLatestDay.map(r => {
-                    // Chỉ lấy phần Giờ:Phút để biểu đồ trông gọn hơn
                     const timePart = r[0].trim().split(' ')[1]; 
                     return timePart ? timePart.substring(0, 5) : r[0];
                 });
@@ -290,14 +353,10 @@ document.addEventListener('keydown', function(event) {
                     curr: dataOfLatestDay.map(r => parseFloat(r[6])), 
                     pow: dataOfLatestDay.map(r => parseFloat(r[7]) || 0)
                 };
-                
                 renderAllCharts(labels, d);
             }
-        } catch (e) { 
-            console.error("Lỗi Sheet 1:", e); 
-        }
+        } catch (e) { console.error("Lỗi Sheet 1:", e); }
 
-        // --- Giữ nguyên phần xử lý Sheet 2 (Hình ảnh) ---
         try {
             const res2 = await fetch(URL_S2 + '&cb=' + Date.now());
             const text2 = await res2.text();
@@ -327,7 +386,6 @@ document.addEventListener('keydown', function(event) {
             elements: { line: { tension: 0.3 }, point: { radius: 0 } },
             scales: { x: { display: false }, y: { ticks: { font: { size: 10 } } } }
         };
-
         const config = (id, datasets) => {
             if (charts[id]) {
                 charts[id].data.labels = labels;
@@ -337,18 +395,9 @@ document.addEventListener('keydown', function(event) {
                 charts[id] = new Chart(document.getElementById(id), { type: 'line', data: { labels, datasets }, options: opt });
             }
         };
-
-        config('chartEnv', [
-            { label: 'T1', data: d.t1, borderColor: '#e74c3c' },
-            { label: 'H1', data: d.h1, borderColor: '#3498db' }
-        ]);
-        config('chartPower', [
-            { label: 'Dòng', data: d.curr, borderColor: '#27ae60' },
-            { label: 'Công suất', data: d.pow, borderColor: '#e31a1c' }
-        ]);
-        config('chartLight', [
-            { label: 'Lux', data: d.light, borderColor: '#f1c40f', fill: true, backgroundColor: 'rgba(241,196,15,0.1)' }
-        ]);
+        config('chartEnv', [{ label: 'T1', data: d.t1, borderColor: '#e74c3c' }, { label: 'H1', data: d.h1, borderColor: '#3498db' }]);
+        config('chartPower', [{ label: 'Dòng', data: d.curr, borderColor: '#27ae60' }, { label: 'Công suất', data: d.pow, borderColor: '#e31a1c' }]);
+        config('chartLight', [{ label: 'Lux', data: d.light, borderColor: '#f1c40f', fill: true, backgroundColor: 'rgba(241,196,15,0.1)' }]);
     }
 </script>
 </body>
